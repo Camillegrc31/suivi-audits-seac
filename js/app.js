@@ -11,6 +11,8 @@ import {
   filtrerAudits,
   formaterDate,
   validerAudit,
+  calculerStatistiques,
+  ligneCSV,
 } from "./logique.js";
 
 // ------------------------------------------------------------
@@ -160,6 +162,7 @@ function rafraichirAffichage() {
   const dateDuJour = dateDuJourISO();
   afficherCompteurRetards(dateDuJour);
   afficherListe(dateDuJour);
+  afficherTableauDeBord(dateDuJour); // bonus
 }
 
 // ------------------------------------------------------------
@@ -261,6 +264,98 @@ function enregistrerFormulaire(evenement) {
 }
 
 // ------------------------------------------------------------
+// Bonus : tableau de bord et export CSV
+// ------------------------------------------------------------
+
+/** Affiche les grandes cartes de chiffres + les retards par site. */
+function afficherTableauDeBord(dateDuJour) {
+  const section = el("tableau-de-bord");
+  section.hidden = false;
+  section.replaceChildren();
+
+  const titre = document.createElement("h2");
+  titre.textContent = "Tableau de bord";
+  section.appendChild(titre);
+
+  const stats = calculerStatistiques(audits, dateDuJour);
+
+  // Grille de cartes : total, chaque statut, retards
+  const grille = document.createElement("div");
+  grille.className = "tableau-de-bord__grille";
+
+  const cartes = [
+    [stats.total, "Total des audits"],
+    [stats.parStatut["à planifier"], "À planifier"],
+    [stats.parStatut["planifié"], "Planifié"],
+    [stats.parStatut["réalisé"], "Réalisé"],
+    [stats.nbRetards, "⚠ En retard"],
+  ];
+  for (const [valeur, libelle] of cartes) {
+    const carte = document.createElement("div");
+    carte.className = "tableau-de-bord__carte";
+    const nombre = document.createElement("p");
+    nombre.className = "tableau-de-bord__valeur";
+    nombre.textContent = valeur;
+    const texte = document.createElement("p");
+    texte.className = "tableau-de-bord__libelle";
+    texte.textContent = libelle;
+    carte.append(nombre, texte);
+    grille.appendChild(carte);
+  }
+  section.appendChild(grille);
+
+  // Détail des retards par site, du site le plus en retard au moins
+  const sousTitre = document.createElement("h3");
+  sousTitre.textContent = "Retards par site";
+  section.appendChild(sousTitre);
+
+  if (stats.retardsParSite.length === 0) {
+    const rien = document.createElement("p");
+    rien.textContent = "Aucun audit en retard.";
+    section.appendChild(rien);
+  } else {
+    const liste = document.createElement("ul");
+    for (const ligne of stats.retardsParSite) {
+      const item = document.createElement("li");
+      item.textContent = ligne.site + " : " + ligne.retards +
+        " audit" + (ligne.retards > 1 ? "s" : "") + " en retard";
+      liste.appendChild(item);
+    }
+    section.appendChild(liste);
+  }
+}
+
+/** Exporte la liste FILTRÉE en CSV (séparateur ";", encodage Excel FR). */
+function exporterCSV() {
+  const dateDuJour = dateDuJourISO();
+  const auditsFiltres = filtrerAudits(audits, filtres);
+
+  const lignes = [
+    ligneCSV(["Site", "Date prévue", "Statut", "Auditeur", "Commentaire", "En retard"]),
+  ];
+  for (const audit of auditsFiltres) {
+    lignes.push(ligneCSV([
+      audit.site,
+      formaterDate(audit.datePrevue),
+      audit.statut,
+      audit.auditeur ?? "",
+      audit.commentaire ?? "",
+      estEnRetard(audit, dateDuJour) ? "oui" : "non",
+    ]));
+  }
+
+  // Le préfixe U+FEFF (BOM) aide Excel à comprendre l'UTF-8 (accents).
+  const contenu = "\uFEFF" + lignes.join("\r\n");
+  const blob = new Blob([contenu], { type: "text/csv;charset=utf-8" });
+
+  const lien = document.createElement("a");
+  lien.href = URL.createObjectURL(blob);
+  lien.download = "audits-seac.csv";
+  lien.click();
+  URL.revokeObjectURL(lien.href); // libère la mémoire du fichier temporaire
+}
+
+// ------------------------------------------------------------
 // Démarrage
 // ------------------------------------------------------------
 function demarrer() {
@@ -307,6 +402,10 @@ function demarrer() {
       ouvrirFormulaireModification(bouton.dataset.id);
     }
   });
+
+  // ----- Bonus : export CSV -----
+  el("btn-export").hidden = false;
+  el("btn-export").addEventListener("click", exporterCSV);
 
   rafraichirAffichage();
 }

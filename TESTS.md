@@ -69,3 +69,18 @@ elle est testable de deux façons, avec **le même module** et **les mêmes cas*
 7. **Ajouter un audit sur un nouveau site** → après enregistrement, le
    nouveau site apparaît dans le filtre « Site ».
 8. **Touche Échap dans la modale** → fermeture sans enregistrement.
+
+### Bonus (étape 5)
+
+9. **Tableau de bord** : sous la liste, cartes Total / À planifier /
+   Planifié / Réalisé / En retard + « Retards par site ». Vérifier que les
+   chiffres du tableau de bord correspondent aux badges et au compteur.
+10. **Cohérence après modification** : passer un audit « planifié » en
+    retard en « réalisé » → le tableau de bord et « Retards par site »
+    changent tout de suite.
+11. **Export CSV** : bouton « Exporter la liste filtrée (CSV) » → un
+    fichier `audits-seac.csv` est téléchargé ; il contient uniquement les
+    audits correspondant aux filtres actifs. L'ouvrir dans Excel :
+    accents et « ; » corrects, colonne « En retard » oui/non.
+12. **Export avec filtre actif** : filtrer sur un site puis exporter →
+    le CSV ne contient que ce site.
