@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Suivi des audits — SEAC</title>
+  <link rel="icon" href="assets/logo-seac.svg">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+  <!-- En-tête : logo SEAC + titre de l'outil -->
+  <header class="entete">
+    <img src="assets/logo-seac.svg" alt="Logo SEAC" class="entete__logo">
+    <h1 class="entete__titre">Suivi des audits — usines</h1>
+  </header>
+
+  <main class="conteneur">
+
+    <!-- Bandeau des retards : compteur mis à jour par js/app.js -->
+    <p id="compteur-retards" class="bandeau-retards" role="status"></p>
+
+    <!-- Zone de filtres (site + statut, combinables) -->
+    <section class="carte filtres" aria-label="Filtres">
+      <div class="filtres__champ">
+        <label for="filtre-site">Site</label>
+        <select id="filtre-site">
+          <option value="">Tous les sites</option>
+        </select>
+      </div>
+
+      <div class="filtres__champ">
+        <label for="filtre-statut">Statut</label>
+        <select id="filtre-statut">
+          <option value="">Tous les statuts</option>
+          <option value="à planifier">À planifier</option>
+          <option value="planifié">Planifié</option>
+          <option value="réalisé">Réalisé</option>
+        </select>
+      </div>
+
+      <button type="button" id="btn-reinitialiser" class="bouton bouton--secondaire">
+        Réinitialiser les filtres
+      </button>
+
+      <button type="button" id="btn-ajouter" class="bouton bouton--primaire">
+        + Ajouter un audit
+      </button>
+    </section>
+
+    <!-- Tableau principal des audits -->
+    <section class="carte" aria-label="Liste des audits">
+      <div class="tableau-scroll">
+        <table id="tableau-audits">
+          <thead>
+            <tr>
+              <th scope="col">Site</th>
+              <th scope="col">Date prévue</th>
+              <th scope="col">Statut</th>
+              <th scope="col">Auditeur</th>
+              <th scope="col">Commentaire</th>
+              <th scope="col">Actions</th>
+            </tr>
+          </thead>
+          <tbody id="corps-tableau">
+            <!-- Lignes générées par js/app.js -->
+          </tbody>
+        </table>
+      </div>
+      <p id="message-vide" class="message-vide" hidden>Aucun audit ne correspond aux filtres.</p>
+    </section>
+
+    <!-- ===== Bonus (étape 5) : tableau de bord + export CSV ===== -->
+    <section id="tableau-de-bord" class="carte" aria-label="Tableau de bord" hidden>
+      <!-- Rempli par js/app.js à l'étape 5 -->
+    </section>
+
+    <button type="button" id="btn-export" class="bouton bouton--secondaire" hidden>
+      Exporter la liste filtrée (CSV)
+    </button>
+
+  </main>
+
+  <footer class="pied">
+    <p>Outil interne de démonstration — données fictives. SEAC, service informatique (Toulouse).</p>
+  </footer>
+
+  <!-- ===== Fenêtre modale : formulaire d'ajout / modification ===== -->
+  <dialog id="dialogue-audit" class="dialogue">
+    <form id="formulaire-audit" method="dialog" novalidate>
+      <h2 id="titre-dialogue">Ajouter un audit</h2>
+
+      <!-- Zone où s'affichent les erreurs de validation -->
+      <p id="erreur-formulaire" class="erreur-formulaire" role="alert" hidden></p>
+
+      <div class="champ">
+        <label for="champ-site">Site <span class="obligatoire">*</span></label>
+        <input type="text" id="champ-site" name="site" required placeholder="Usine de…">
+      </div>
+
+      <div class="champ">
+        <label for="champ-statut">Statut <span class="obligatoire">*</span></label>
+        <select id="champ-statut" name="statut" required>
+          <option value="à planifier">À planifier</option>
+          <option value="planifié">Planifié</option>
+          <option value="réalisé">Réalisé</option>
+        </select>
+      </div>
+
+      <div class="champ">
+        <label for="champ-date">Date prévue</label>
+        <input type="date" id="champ-date" name="datePrevue">
+        <p class="aide-champ">Obligatoire sauf si le statut est « à planifier ».</p>
+      </div>
+
+      <div class="champ">
+        <label for="champ-auditeur">Auditeur (facultatif)</label>
+        <input type="text" id="champ-auditeur" name="auditeur" placeholder="Nom de l'auditeur">
+      </div>
+
+      <div class="champ">
+        <label for="champ-commentaire">Commentaire (facultatif)</label>
+        <textarea id="champ-commentaire" name="commentaire" rows="3"></textarea>
+      </div>
+
+      <div class="dialogue__actions">
+        <button type="button" id="btn-annuler" class="bouton bouton--secondaire">Annuler</button>
+        <button type="submit" class="bouton bouton--primaire">Enregistrer</button>
+      </div>
+    </form>
+  </dialog>
+
+  <script type="module" src="js/app.js"></script>
+</body>
+</html>

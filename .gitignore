@@ -1,0 +1,3 @@
+# Fichiers système à ne pas versionner
+Thumbs.db
+.DS_Store

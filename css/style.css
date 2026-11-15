@@ -1,0 +1,408 @@
+/* ============================================================
+   Suivi des audits — SEAC
+   Toute l'identité visuelle est définie ici, dans :root.
+   Pour changer la charte, modifier UNIQUEMENT ces variables.
+   ============================================================ */
+:root {
+  /* ----- Couleurs principales (approximées d'après les captures
+     du site seac-guiraud.fr : ce ne sont PAS des valeurs officielles) ----- */
+  --couleur-primaire: #009640;        /* vert SEAC (bordures, logo, touches) */
+  --couleur-primaire-texte: #00713A;  /* vert foncé : titres et boutons (lisibilité AA) */
+  --couleur-accent: #FFE600;          /* jaune SEAC (bouton « NOS PRODUITS » sur le site) */
+  --couleur-fond: #EDEDED;            /* fond de page gris très clair */
+  --couleur-carte: #FFFFFF;           /* fond des cartes / sections */
+  --couleur-texte: #222221;           /* texte principal */
+  --couleur-texte-doux: #5A5A58;      /* texte secondaire */
+  --couleur-bordure: #D6D6D4;
+
+  /* ----- Couleurs de statut : choisis pour rester lisibles et
+     distinctes, avec toujours un libellé texte (jamais la couleur seule) ----- */
+  --statut-a-planifier-fond: #EAEAEA;
+  --statut-a-planifier-texte: #3D3D3B;
+  --statut-planifie-fond: #E3EEFB;
+  --statut-planifie-texte: #1A4F8B;
+  --statut-realise-fond: #E2F4E8;
+  --statut-realise-texte: #14602F;
+
+  /* ----- Retard : rouge, immédiatement repérable ----- */
+  --couleur-retard: #B3342A;          /* bordure / icône */
+  --couleur-retard-fond: #FBE4E1;     /* fond du badge */
+  --couleur-retard-texte: #8F1D12;    /* texte du badge */
+  --couleur-retard-ligne: #FDF1EF;    /* fond léger de la ligne du tableau */
+
+  /* ----- Police : pile système (hypothèse : le site SEAC n'expose
+     pas de police réutilisable, aucune ressource externe n'est chargée) ----- */
+  --police: system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+
+  /* ----- Rayons, espacements, ombre ----- */
+  --rayon: 6px;
+  --espace-xs: 4px;
+  --espace-s: 8px;
+  --espace-m: 16px;
+  --espace-l: 24px;
+  --espace-xl: 32px;
+  --ombre: 0 1px 3px rgba(0, 0, 0, 0.08);
+}
+
+/* ============================================================
+   Base
+   ============================================================ */
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: var(--police);
+  color: var(--couleur-texte);
+  background-color: var(--couleur-fond);
+  line-height: 1.5;
+}
+
+.conteneur {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: var(--espace-l);
+  display: flex;
+  flex-direction: column;
+  gap: var(--espace-m);
+}
+
+/* ============================================================
+   En-tête
+   ============================================================ */
+.entete {
+  display: flex;
+  align-items: center;
+  gap: var(--espace-m);
+  padding: var(--espace-s) var(--espace-l);
+  background-color: var(--couleur-carte);
+  border-bottom: 3px solid var(--couleur-primaire);
+}
+
+.entete__logo {
+  height: 44px;
+  width: auto;
+}
+
+.entete__titre {
+  font-size: 1.25rem;
+  color: var(--couleur-primaire-texte);
+  margin: 0;
+}
+
+/* ============================================================
+   Cartes et bandeau des retards
+   ============================================================ */
+.carte {
+  background-color: var(--couleur-carte);
+  border: 1px solid var(--couleur-bordure);
+  border-radius: var(--rayon);
+  box-shadow: var(--ombre);
+  padding: var(--espace-m);
+}
+
+/* Bandeau des retards : rempli par js/app.js */
+.bandeau-retards {
+  margin: 0;
+  padding: var(--espace-s) var(--espace-m);
+  border-radius: var(--rayon);
+  font-weight: bold;
+}
+
+/* État "aucun retard" : neutre ; État "des retards" : rouge visible */
+.bandeau-retards--ok {
+  background-color: var(--statut-realise-fond);
+  color: var(--statut-realise-texte);
+}
+
+.bandeau-retards--alerte {
+  background-color: var(--couleur-retard-fond);
+  color: var(--couleur-retard-texte);
+  border: 1px solid var(--couleur-retard);
+}
+
+/* ============================================================
+   Filtres
+   ============================================================ */
+.filtres {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: var(--espace-m);
+}
+
+.filtres__champ {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espace-xs);
+}
+
+.filtres__champ label {
+  font-weight: bold;
+  font-size: 0.9rem;
+}
+
+.filtres .bouton--primaire {
+  margin-left: auto; /* pousse le bouton "Ajouter" à droite */
+}
+
+/* ============================================================
+   Boutons
+   ============================================================ */
+.bouton {
+  font-family: var(--police);
+  font-size: 1rem;
+  padding: var(--espace-s) var(--espace-m);
+  border-radius: var(--rayon);
+  border: 1px solid var(--couleur-bordure);
+  background-color: var(--couleur-carte);
+  color: var(--couleur-texte);
+  cursor: pointer;
+}
+
+.bouton:hover {
+  background-color: var(--couleur-fond);
+}
+
+.bouton--primaire {
+  background-color: var(--couleur-primaire-texte);
+  border-color: var(--couleur-primaire-texte);
+  color: #FFFFFF;
+}
+
+.bouton--primaire:hover {
+  background-color: #005D2E;
+}
+
+.bouton--accent {
+  background-color: var(--couleur-accent);
+  border-color: #CDBE00;
+  color: var(--couleur-texte);
+  font-weight: bold;
+}
+
+/* ============================================================
+   Tableau des audits
+   ============================================================ */
+.tableau-scroll {
+  overflow-x: auto; /* permet le défilement horizontal sur téléphone */
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+th,
+td {
+  text-align: left;
+  padding: var(--espace-s) var(--espace-s);
+  border-bottom: 1px solid var(--couleur-bordure);
+  vertical-align: top;
+}
+
+th {
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  color: var(--couleur-texte-doux);
+}
+
+tbody tr:hover {
+  background-color: var(--couleur-fond);
+}
+
+/* Ligne d'un audit en retard : fond léger + bordure rouge à gauche
+   (la couleur ne porte JAMAIS l'information seule : le badge aussi) */
+tr.ligne-retard {
+  background-color: var(--couleur-retard-ligne);
+  box-shadow: inset 4px 0 0 var(--couleur-retard);
+}
+
+.message-vide {
+  color: var(--couleur-texte-doux);
+  text-align: center;
+  padding: var(--espace-m);
+}
+
+/* ============================================================
+   Badges de statut (texte + couleur, jamais la couleur seule)
+   ============================================================ */
+.badge {
+  display: inline-block;
+  padding: 2px var(--espace-s);
+  border-radius: var(--rayon);
+  font-size: 0.85rem;
+  font-weight: bold;
+  white-space: nowrap;
+}
+
+.badge--a-planifier {
+  background-color: var(--statut-a-planifier-fond);
+  color: var(--statut-a-planifier-texte);
+}
+
+.badge--planifie {
+  background-color: var(--statut-planifie-fond);
+  color: var(--statut-planifie-texte);
+}
+
+.badge--realise {
+  background-color: var(--statut-realise-fond);
+  color: var(--statut-realise-texte);
+}
+
+.badge--retard {
+  background-color: var(--couleur-retard-fond);
+  color: var(--couleur-retard-texte);
+  border: 1px solid var(--couleur-retard);
+}
+
+/* Date sans valeur ("à planifier") */
+.date-vide {
+  color: var(--couleur-texte-doux);
+  font-style: italic;
+}
+
+/* ============================================================
+   Fenêtre modale (formulaire d'ajout / modification)
+   ============================================================ */
+.dialogue {
+  border: 1px solid var(--couleur-bordure);
+  border-radius: var(--rayon);
+  padding: var(--espace-l);
+  width: min(440px, 92vw);
+}
+
+.dialogue::backdrop {
+  background-color: rgba(0, 0, 0, 0.4);
+}
+
+.dialogue h2 {
+  margin-top: 0;
+  color: var(--couleur-primaire-texte);
+  font-size: 1.15rem;
+}
+
+.champ {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espace-xs);
+  margin-bottom: var(--espace-m);
+}
+
+.champ label {
+  font-weight: bold;
+  font-size: 0.9rem;
+}
+
+.champ input,
+.champ select,
+.champ textarea {
+  font-family: var(--police);
+  font-size: 1rem;
+  padding: var(--espace-s);
+  border: 1px solid var(--couleur-bordure);
+  border-radius: var(--rayon);
+  background-color: var(--couleur-carte);
+  color: var(--couleur-texte);
+}
+
+.champ input:focus,
+.champ select:focus,
+.champ textarea:focus {
+  outline: 2px solid var(--couleur-primaire);
+  outline-offset: 1px;
+}
+
+.obligatoire {
+  color: var(--couleur-retard-texte);
+}
+
+.aide-champ {
+  margin: 0;
+  font-size: 0.8rem;
+  color: var(--couleur-texte-doux);
+}
+
+.erreur-formulaire {
+  margin: 0 0 var(--espace-m);
+  padding: var(--espace-s) var(--espace-m);
+  background-color: var(--couleur-retard-fond);
+  color: var(--couleur-retard-texte);
+  border: 1px solid var(--couleur-retard);
+  border-radius: var(--rayon);
+  font-weight: bold;
+}
+
+.dialogue__actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--espace-s);
+}
+
+/* ============================================================
+   Bonus (étape 5) : tableau de bord
+   ============================================================ */
+.tableau-de-bord__grille {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--espace-m);
+}
+
+.tableau-de-bord__carte {
+  flex: 1 1 140px;
+  border: 1px solid var(--couleur-bordure);
+  border-radius: var(--rayon);
+  padding: var(--espace-s) var(--espace-m);
+  text-align: center;
+}
+
+.tableau-de-bord__valeur {
+  font-size: 1.8rem;
+  font-weight: bold;
+  margin: 0;
+}
+
+.tableau-de-bord__libelle {
+  margin: 0;
+  font-size: 0.85rem;
+  color: var(--couleur-texte-doux);
+}
+
+/* ============================================================
+   Pied de page
+   ============================================================ */
+.pied {
+  text-align: center;
+  color: var(--couleur-texte-doux);
+  font-size: 0.85rem;
+  padding: var(--espace-l);
+}
+
+/* ============================================================
+   Responsive : adaptation simple pour les petits écrans
+   ============================================================ */
+@media (max-width: 640px) {
+  .conteneur {
+    padding: var(--espace-s);
+  }
+
+  .entete {
+    flex-direction: column;
+    gap: var(--espace-xs);
+    text-align: center;
+  }
+
+  .filtres .bouton--primaire {
+    margin-left: 0;
+    width: 100%;
+  }
+
+  /* Le tableau reste lisible grâce au défilement horizontal
+     (.tableau-scroll) ; on réduit juste les tailles. */
+  th,
+  td {
+    font-size: 0.9rem;
+  }
+}
