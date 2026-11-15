@@ -10,6 +10,7 @@ import {
   estEnRetard,
   filtrerAudits,
   formaterDate,
+  validerAudit,
 } from "./logique.js";
 
 // ------------------------------------------------------------
@@ -162,6 +163,104 @@ function rafraichirAffichage() {
 }
 
 // ------------------------------------------------------------
+// Formulaire d'ajout / modification
+// ------------------------------------------------------------
+// auditEnCours = id de l'audit en modification, null en mode ajout.
+let auditEnCours = null;
+
+/** Id unique simple pour un nouvel audit (sans dépendance). */
+function nouvelId() {
+  return "audit-" + Date.now().toString(36) + "-" + Math.floor(Math.random() * 1000);
+}
+
+/** La date n'est obligatoire que si le statut n'est pas "à planifier" :
+    on met à jour l'attribut required pour aider aussi la saisie clavier. */
+function majChampDateObligatoire() {
+  el("champ-date").required = el("champ-statut").value !== "à planifier";
+}
+
+/** Ouvre le formulaire vide (mode "Ajouter"). */
+function ouvrirFormulaireAjout() {
+  auditEnCours = null;
+  el("titre-dialogue").textContent = "Ajouter un audit";
+  el("formulaire-audit").reset();
+  majChampDateObligatoire();
+  el("erreur-formulaire").hidden = true;
+  el("dialogue-audit").showModal();
+}
+
+/** Ouvre le formulaire pré-rempli avec l'audit à modifier. */
+function ouvrirFormulaireModification(id) {
+  const audit = audits.find((a) => a.id === id);
+  if (!audit) {
+    return;
+  }
+  auditEnCours = audit.id;
+  el("titre-dialogue").textContent = "Modifier l'audit — " + audit.site;
+  el("champ-site").value = audit.site;
+  el("champ-statut").value = audit.statut;
+  el("champ-date").value = audit.datePrevue ?? "";
+  el("champ-auditeur").value = audit.auditeur ?? "";
+  el("champ-commentaire").value = audit.commentaire ?? "";
+  majChampDateObligatoire();
+  el("erreur-formulaire").hidden = true;
+  el("dialogue-audit").showModal();
+}
+
+/** Soumission du formulaire : valider, puis créer ou mettre à jour. */
+function enregistrerFormulaire(evenement) {
+  evenement.preventDefault(); // on gère nous-mêmes l'enregistrement
+
+  const saisie = {
+    site: el("champ-site").value,
+    statut: el("champ-statut").value,
+    datePrevue: el("champ-date").value,
+    auditeur: el("champ-auditeur").value.trim(),
+    commentaire: el("champ-commentaire").value.trim(),
+  };
+
+  // 1) Validation (fonction pure, testée dans tests.html / Node)
+  const verdict = validerAudit(saisie);
+  const zoneErreur = el("erreur-formulaire");
+  if (!verdict.valide) {
+    zoneErreur.textContent = verdict.erreurs.join(" ");
+    zoneErreur.hidden = false;
+    return;
+  }
+
+  // 2) Création ou mise à jour
+  if (auditEnCours === null) {
+    audits.push({
+      id: nouvelId(),
+      site: saisie.site.trim(),
+      datePrevue: saisie.datePrevue === "" ? null : saisie.datePrevue,
+      statut: saisie.statut,
+      auditeur: saisie.auditeur === "" ? null : saisie.auditeur,
+      commentaire: saisie.commentaire === "" ? null : saisie.commentaire,
+    });
+  } else {
+    const audit = audits.find((a) => a.id === auditEnCours);
+    audit.site = saisie.site.trim();
+    audit.datePrevue = saisie.datePrevue === "" ? null : saisie.datePrevue;
+    audit.statut = saisie.statut;
+    audit.auditeur = saisie.auditeur === "" ? null : saisie.auditeur;
+    audit.commentaire = saisie.commentaire === "" ? null : saisie.commentaire;
+  }
+
+  // 3) Sauvegarde : si le stockage refuse, on reste dans le formulaire
+  if (!sauvegarderAudits(audits)) {
+    zoneErreur.textContent = "Enregistrement impossible (stockage du navigateur indisponible).";
+    zoneErreur.hidden = false;
+    return;
+  }
+
+  // 4) Fermeture et rafraîchissement de tout l'affichage
+  el("dialogue-audit").close();
+  remplirSelecteurSites(); // un nouveau site peut avoir été saisi
+  rafraichirAffichage();
+}
+
+// ------------------------------------------------------------
 // Démarrage
 // ------------------------------------------------------------
 function demarrer() {
@@ -192,6 +291,21 @@ function demarrer() {
     el("filtre-site").value = "";
     el("filtre-statut").value = "";
     afficherListe(dateDuJourISO());
+  });
+
+  // ----- Formulaire d'ajout / modification -----
+  el("btn-ajouter").addEventListener("click", ouvrirFormulaireAjout);
+  el("btn-annuler").addEventListener("click", () => el("dialogue-audit").close());
+  el("formulaire-audit").addEventListener("submit", enregistrerFormulaire);
+  el("champ-statut").addEventListener("change", majChampDateObligatoire);
+
+  // Les boutons "Modifier" sont créés dynamiquement : on écoute le
+  // tableau lui-même (délégation d'événement) plutôt que chaque bouton.
+  el("corps-tableau").addEventListener("click", (evenement) => {
+    const bouton = evenement.target.closest("button");
+    if (bouton && bouton.dataset.id) {
+      ouvrirFormulaireModification(bouton.dataset.id);
+    }
   });
 
   rafraichirAffichage();

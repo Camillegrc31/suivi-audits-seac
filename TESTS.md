@@ -55,3 +55,17 @@ elle est testable de deux façons, avec **le même module** et **les mêmes cas*
 3. **localStorage corrompu** : mettre la valeur de la clé
    `suivi-audits-seac-v1` à « {pas du json » puis recharger → l'app repart du
    jeu de données sans erreur bloquante.
+
+### Formulaire (étape 4)
+
+4. **Ajouter un audit** : bouton « + Ajouter un audit » → la modale s'ouvre
+   vide. Enregistrer sans rien saisir → messages d'erreur affichés dans la
+   modale (site obligatoire, date obligatoire).
+5. **Ajouter un audit « planifié » sans date** → refusé avec message ; le
+   même audit avec statut « à planifier » et sans date → accepté.
+6. **Modifier un audit existant** : bouton « Modifier » d'une ligne → la
+   modale s'ouvre pré-remplie ; modifier le statut en « réalisé » puis
+   enregistrer → la ligne n'est plus en retard, le compteur baisse.
+7. **Ajouter un audit sur un nouveau site** → après enregistrement, le
+   nouveau site apparaît dans le filtre « Site ».
+8. **Touche Échap dans la modale** → fermeture sans enregistrement.
