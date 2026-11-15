@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Tests de la logique — Suivi des audits</title>
+  <style>
+    /* Style minimal volontaire : cette page sert à vérifier la logique. */
+    body { font-family: system-ui, Arial, sans-serif; max-width: 760px; margin: 24px auto; padding: 0 16px; }
+    h1 { color: #00713A; font-size: 1.2rem; }
+    .resume { font-weight: bold; padding: 8px 16px; border-radius: 6px; }
+    .resume-ok { background: #E2F4E8; color: #14602F; }
+    .resume-ko { background: #FBE4E1; color: #8F1D12; }
+    li { margin: 4px 0; }
+    .echec { color: #8F1D12; }
+    .detail { font-family: monospace; font-size: 0.85rem; color: #5A5A58; }
+  </style>
+</head>
+<body>
+  <h1>Tests de la logique pure (js/logique.js)</h1>
+  <p id="resume" class="resume">Tests en cours…</p>
+  <ol id="resultats"></ol>
+
+  <script type="module">
+    import {
+      STATUTS,
+      estEnRetard,
+      filtrerAudits,
+      validerAudit,
+      estDateValide,
+      calculerStatistiques,
+      formaterDate,
+      ligneCSV,
+    } from "./js/logique.js";
+
+    // ---------- Petits outils de test (aucune dépendance) ----------
+
+    // Comparaison en profondeur simple, par JSON avec clés triées
+    // (suffisant pour nos petites structures).
+    function compareProfond(a, b) {
+      const normaliser = (valeur) =>
+        valeur === null ? null :
+        Array.isArray(valeur) ? valeur.map(normaliser) :
+        typeof valeur === "object" ?
+          Object.fromEntries(Object.keys(valeur).sort().map((c) => [c, normaliser(valeur[c])])) :
+          valeur;
+      return JSON.stringify(normaliser(a)) === JSON.stringify(normaliser(b));
+    }
+
+    function affirmerEgal(valeurAttendue, valeurObtenue, message) {
+      if (!compareProfond(valeurAttendue, valeurObtenue)) {
+        throw new Error(message + " — attendu : " + JSON.stringify(valeurAttendue) +
+                        ", obtenu : " + JSON.stringify(valeurObtenue));
+      }
+    }
+
+    function affirmerVrai(valeur, message) {
+      affirmerEgal(true, Boolean(valeur), message);
+    }
+
+    function affirmerFaux(valeur, message) {
+      affirmerEgal(false, Boolean(valeur), message);
+    }
+
+    // ---------- Jeu d'audits de test partagé ----------
+    // audit "type" réutilisé partout, date du jour fixe "2026-06-15".
+    const JOUR = "2026-06-15";
+    const audit = (surcharge) => ({
+      id: "t1", site: "Usine A", datePrevue: null, statut: "planifié",
+      auditeur: null, commentaire: "", ...surcharge,
+    });
+    const listeTest = [
+      audit({ id: "1", site: "Usine A", datePrevue: "2026-06-10", statut: "planifié" }),      // en retard
+      audit({ id: "2", site: "Usine A", datePrevue: "2026-06-10", statut: "réalisé" }),       // passé mais réalisé
+      audit({ id: "3", site: "Usine B", datePrevue: "2026-06-15", statut: "planifié" }),      // aujourd'hui
+      audit({ id: "4", site: "Usine B", datePrevue: "2026-07-01", statut: "planifié" }),      // à venir
+      audit({ id: "5", site: "Usine C", datePrevue: null, statut: "à planifier" }),           // sans date
+    ];
+
+    // ---------- Liste des tests ----------
+    const tests = [
+      ["estEnRetard : date passée + non réalisé = retard",
+        () => affirmerVrai(estEnRetard(audit({ datePrevue: "2026-06-14", statut: "planifié" }), JOUR), "devrait être en retard")],
+      ["estEnRetard : date passée mais réalisé = pas de retard",
+        () => affirmerFaux(estEnRetard(audit({ datePrevue: "2026-06-14", statut: "réalisé" }), JOUR), "réalisé n'est jamais en retard")],
+      ["estEnRetard : date prévue aujourd'hui = pas de retard",
+        () => affirmerFaux(estEnRetard(audit({ datePrevue: JOUR, statut: "planifié" }), JOUR), "aujourd'hui n'est pas dépassé")],
+      ["estEnRetard : sans date = pas de retard",
+        () => affirmerFaux(estEnRetard(audit({ datePrevue: null, statut: "à planifier" }), JOUR), "pas de date, pas de retard")],
+      ["estEnRetard : date à venir = pas de retard",
+        () => affirmerFaux(estEnRetard(audit({ datePrevue: "2026-07-01", statut: "planifié" }), JOUR), "futur = pas de retard")],
+
+      ["filtrerAudits : sans filtre, tout est renvoyé",
+        () => affirmerEgal(5, filtrerAudits(listeTest, { site: "", statut: "" }).length, "5 audits attendus")],
+      ["filtrerAudits : filtre par site seul",
+        () => affirmerEgal([1, 2], filtrerAudits(listeTest, { site: "Usine A", statut: "" }).map(a => a.id), "ids de l'Usine A")],
+      ["filtrerAudits : filtre par statut seul",
+        () => affirmerEgal(3, filtrerAudits(listeTest, { site: "", statut: "planifié" }).length, "3 audits planifiés")],
+      ["filtrerAudits : filtres combinés (ET logique)",
+        () => affirmerEgal([1], filtrerAudits(listeTest, { site: "Usine A", statut: "planifié" }).map(a => a.id), "seul l'audit 1 correspond")],
+      ["filtrerAudits : filtre sans résultat",
+        () => affirmerEgal(0, filtrerAudits(listeTest, { site: "Usine X", statut: "" }).length, "aucun résultat")],
+      ["filtrerAudits : la liste originale n'est pas modifiée",
+        () => { filtrerAudits(listeTest, { site: "Usine A", statut: "planifié" }); affirmerEgal(5, listeTest.length, "liste inchangée"); }],
+
+      ["validerAudit : saisie complète valide",
+        () => affirmerVrai(validerAudit({ site: "Usine A", statut: "planifié", datePrevue: "2026-07-01" }).valide, "devrait être valide")],
+      ["validerAudit : site manquant",
+        () => affirmerFaux(validerAudit({ site: "   ", statut: "planifié", datePrevue: "2026-07-01" }).valide, "site obligatoire")],
+      ["validerAudit : statut inconnu",
+        () => affirmerFaux(validerAudit({ site: "Usine A", statut: "fait", datePrevue: "2026-07-01" }).valide, "statut hors liste")],
+      ["validerAudit : date obligatoire sauf si à planifier",
+        () => affirmerFaux(validerAudit({ site: "Usine A", statut: "planifié", datePrevue: "" }).valide, "date obligatoire")],
+      ["validerAudit : à planifier sans date = valide",
+        () => affirmerVrai(validerAudit({ site: "Usine A", statut: "à planifier", datePrevue: "" }).valide, "cas limite accepté")],
+      ["validerAudit : date invalide (31/02)",
+        () => affirmerFaux(validerAudit({ site: "Usine A", statut: "planifié", datePrevue: "2026-02-31" }).valide, "31 février refusé")],
+      ["validerAudit : format de date incorrect",
+        () => affirmerFaux(validerAudit({ site: "Usine A", statut: "planifié", datePrevue: "15/06/2026" }).valide, "format FR refusé (stockage AAAA-MM-JJ)")],
+      ["estDateValide : cas valides et invalides",
+        () => { affirmerVrai(estDateValide("2024-02-29"), "2024 bissextile"); affirmerFaux(estDateValide("2026-02-29"), "2026 non bissextile"); }],
+
+      ["calculerStatistiques : totaux et par statut",
+        () => { const s = calculerStatistiques(listeTest, JOUR);
+                affirmerEgal(5, s.total, "total"); affirmerEgal(3, s.parStatut["planifié"], "planifiés");
+                affirmerEgal(1, s.parStatut["réalisé"], "réalisés"); affirmerEgal(1, s.parStatut["à planifier"], "à planifier"); }],
+      ["calculerStatistiques : compte les retards et les groupes par site",
+        () => { const s = calculerStatistiques(listeTest, JOUR);
+                affirmerEgal(1, s.nbRetards, "1 retard");
+                affirmerEgal([{ site: "Usine A", retards: 1 }], s.retardsParSite, "retards groupés par site"); }],
+
+      ["formaterDate : conversion en JJ/MM/AAAA et tiret si absente",
+        () => { affirmerEgal("15/06/2026", formaterDate("2026-06-15"), "format français"); affirmerEgal("—", formaterDate(null), "sans date"); }],
+
+      ["ligneCSV : protège les séparateurs et les guillemets",
+        () => affirmerEgal('a;"b;c""d"', ligneCSV(["a", 'b;c"d']), "échappement CSV")],
+
+      ["STATUTS : la liste des statuts est complète",
+        () => affirmerEgal(["à planifier", "planifié", "réalisé"], STATUTS, "les 3 statuts du sujet")],
+    ];
+
+    // ---------- Exécution et affichage ----------
+    const listeResultats = document.getElementById("resultats");
+    let nbEchecs = 0;
+
+    for (const [nom, code] of tests) {
+      const li = document.createElement("li");
+      try {
+        code();
+        li.textContent = nom + " ✔";
+      } catch (erreur) {
+        nbEchecs = nbEchecs + 1;
+        li.classList.add("echec");
+        li.textContent = nom + " ✘";
+        const detail = document.createElement("div");
+        detail.className = "detail";
+        detail.textContent = erreur.message;
+        li.appendChild(detail);
+      }
+      listeResultats.appendChild(li);
+    }
+
+    const resume = document.getElementById("resume");
+    if (nbEchecs === 0) {
+      resume.textContent = tests.length + " tests : tous réussis ✔";
+      resume.classList.add("resume-ok");
+    } else {
+      resume.textContent = tests.length + " tests : " + nbEchecs + " échec(s) ✘";
+      resume.classList.add("resume-ko");
+    }
+  </script>
+</body>
+</html>
