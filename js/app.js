@@ -4,7 +4,7 @@
 // (donnees.js) et le stockage (stockage.js) à la page HTML.
 // ============================================================
 
-import { SITES, genererAudits } from "./donnees.js";
+import { genererAudits } from "./donnees.js";
 import { chargerAudits, sauvegarderAudits } from "./stockage.js";
 import {
   estEnRetard,
