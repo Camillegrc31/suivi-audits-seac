@@ -21,12 +21,21 @@ candidature à un stage de développement web au service informatique de Toulous
 
 Aucune installation, aucun build, aucune dépendance.
 
-- **Option 1 (la plus simple)** : ouvrir `index.html` en double-cliquant dessus.
-- **Option 2 (serveur statique)** :
+- **Option 1 (recommandée) — serveur statique local** :
   ```bash
   python -m http.server 8000
   ```
-  puis ouvrir http://localhost:8000
+  dans le dossier du projet, puis ouvrir http://localhost:8000
+- **Option 2 — GitHub Pages** : fonctionne telle quelle (voir plus bas).
+- **Option 3 — VS Code + Live Server** : clic droit sur `index.html` >
+  « Open with Live Server ».
+
+> **Pourquoi pas le double-clic sur `index.html` ?** L'app utilise des modules
+> ES (`<script type="module">`). Depuis une page ouverte en `file://`, les
+> navigateurs bloquent le chargement des modules (contrôle CORS, origine
+> « null ») : la page resterait vide avec une erreur console. C'est une
+> restriction standard des navigateurs, pas un bug de l'application — d'où
+> l'usage d'un serveur statique, même minimal.
 
 Les modifications sont enregistrées dans le `localStorage` du navigateur
 (au premier chargement, un jeu de données fictif est généré avec des dates

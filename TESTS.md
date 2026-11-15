@@ -48,10 +48,14 @@ elle est testable de deux façons, avec **le même module** et **les mêmes cas*
 
 À compléter au fil des fonctionnalités. Pour l'instant :
 
-1. **tests.html** : le résumé doit afficher « tous réussis ✔ ».
-2. **Premier chargement d'index.html** : la liste d'audits fictifs apparaît ;
+1. **Lancer un serveur statique** (`python -m http.server 8000`) puis ouvrir
+   http://localhost:8000 — la liste d'audits fictifs apparaît ;
    vider le localStorage (Outils de développement > Application > Stockage local)
    puis recharger doit régénérer un jeu cohérent avec la date du jour.
+   (Attention : ouvrir `index.html` en double-clic ne fonctionne pas à cause
+   des modules ES bloqués en `file://` — voir README.)
+2. **tests.html** : ouvrir http://localhost:8000/tests.html → le résumé doit
+   afficher « tous réussis ✔ ».
 3. **localStorage corrompu** : mettre la valeur de la clé
    `suivi-audits-seac-v1` à « {pas du json » puis recharger → l'app repart du
    jeu de données sans erreur bloquante.

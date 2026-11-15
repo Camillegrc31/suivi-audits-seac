@@ -67,9 +67,22 @@
 - Non vérifié (pas de navigateur) : l'affichage du tableau de bord et le
   téléchargement réel du CSV.
 
-## Étape 6 — Finitions et documentation
+## Après livraison — vérification réelle dans le navigateur
 
-- Retraits : import SITES devenu inutile dans app.js ; ajout de
+- Premier test réel de l'app (navigateur intégré + `python -m http.server`) :
+  zéro erreur console, compteur « ⚠ 5 audits en retard », filtres peuplés,
+  tableau de bord correct (29/9/12/8, 5 retards, liste par site), bouton
+  d'export visible. Capture d'écran faite.
+- Découverte importante : l'app NE fonctionne PAS en double-clic sur
+  index.html — les modules ES sont bloqués par CORS en `file://`
+  (restriction standard des navigateurs, pas un bug). Le README disait à tort
+  que le double-clic suffit : corrigé (lancement = serveur statique, GitHub
+  Pages, ou Live Server). Choix conservé : on garde les modules ES.
+- Testé par moi : rendu visuel et console sur serveur. À tester par le
+  candidat : interactions (filtres, formulaire, export CSV), responsive,
+  contrastes.
+
+## Étape 6 — Finitions et documentation- Retraits : import SITES devenu inutile dans app.js ; ajout de
   aria-labelledby sur la modale.
 - Documentation finale : EXPLICATIONS.md (visite guidée + 4 scénarios de
   petite modification), TESTS.md (24 cas + 12 vérifications manuelles),
