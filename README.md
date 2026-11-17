@@ -80,13 +80,6 @@ charte est définie dans `:root` en haut de `css/style.css` — la changer ne de
 que de modifier ces variables. La police est une pile système (aucune ressource
 externe n'est chargée).
 
-## Publier sur GitHub Pages
-
-1. Créer un dépôt GitHub et y pousser ce projet.
-2. `Settings` > `Pages` > `Source` : branche `main`, dossier `/ (root)`.
-3. L'adresse `https://<pseudo>.github.io/<depot>/` sert alors `index.html` tel quel
-   (aucun build nécessaire). Le logo et la police étant locaux/système, tout fonctionne.
-
 ## Limites connues
 
 - Pas de back-end : les données sont locales au navigateur (localStorage).
